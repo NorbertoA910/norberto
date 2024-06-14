@@ -7,7 +7,7 @@ import json
 root = Tk()
 root.title("Stepper Motor")
 root.resizable(width=False, height=False)
-##qwe
+
 tree = ttk.Treeview(root, columns=("X", "Y", "Z", "Delay"), show='headings')
 tree.heading("X", text="X")
 tree.heading("Y", text="Y")
@@ -184,7 +184,6 @@ def check_number():
     except ValueError:
         char_warning()
         z = 0
-    update_coordinates()
 
 def char_warning():
     warning = Toplevel(root)
@@ -204,7 +203,7 @@ def check_limit():
         colorx = "red"
         coordinatesx.config(text=str(x))
         limit_warning()
-    checkLimitx.config(fg=colorx)
+    limitx.config(fg=colorx)
     if int(x) > -limit:
         colorx = "green"
     else:
@@ -212,7 +211,7 @@ def check_limit():
         colorx = "red"
         coordinatesx.config(text=str(x))
         limit_warning()
-    checkLimitx.config(fg=colorx)
+    limitx.config(fg=colorx)
 
     if int(y) < limit:
         colory = "green"
@@ -221,7 +220,7 @@ def check_limit():
         colory = "red"
         coordinatesy.config(text=str(y))
         limit_warning()
-    checkLimity.config(fg=colory)
+    limity.config(fg=colory)
     if int(y) > -limit:
         colory = "green"
     else:
@@ -229,7 +228,7 @@ def check_limit():
         colorz = "red"
         coordinatesy.config(text=str(y))
         limit_warning()
-    checkLimity.config(fg=colory)
+    limity.config(fg=colory)
 
     if int(z) < limit:
         colorz = "green"
@@ -238,7 +237,7 @@ def check_limit():
         colorz = "red"
         coordinatesz.config(text=str(z))
         limit_warning()
-    checkLimitz.config(fg=colorz)
+    limitz.config(fg=colorz)
     if int(z) > -limit:
         colorz = "green"
     else:
@@ -246,7 +245,7 @@ def check_limit():
         colorz = "red"
         coordinatesz.config(text=str(z))
         limit_warning()
-    checkLimitz.config(fg=colorz)
+    limitz.config(fg=colorz)
 
 def homeMotor(x_target=None, y_target=None, z_target=None):
     global x, y, z
@@ -261,7 +260,7 @@ def home_all():
 def limit_warning():
     warning = Toplevel(root)
     warning.resizable(width=False, height=False)
-    Label(warning, text='Limit Reached! Defaulting to 3000.').grid(row=0, column=0)
+    Label(warning, text='Limit Reached! Changing to Default Value.').grid(row=0, column=0)
     Button(warning, text='OK', command=warning.destroy).grid(row=1, column=0)
     warning.grab_set()
 
@@ -286,6 +285,7 @@ def moveTo(_x=None, _y=None, _z=None):
             x = int(gotox.get())
             y = int(gotoy.get())
             z = int(gotoz.get())
+            check_number()
         else:
             x = _x
             y = _y
@@ -293,7 +293,9 @@ def moveTo(_x=None, _y=None, _z=None):
     except ValueError:
         char_warning()
         x, y, z = 0, 0, 0
-    check_number()
+    
+    update_coordinates()
+
 
 def move_up_left(): move_delta(-1, 1, 0)
 def move_xy_up(): move_delta(0, 1, 0)
@@ -420,7 +422,6 @@ def run_next_coordinate(coordinates, index):
         
         x, y, z, delay = tree.item(current_item, 'values')
         moveTo(x, y, z)
-        update_coordinates()
         
         root.after(int(float(delay) * 1000), run_next_coordinate, coordinates, index + 1)
     else:
@@ -508,12 +509,12 @@ Button(columnx, text='🏠︎', width=4, command=lambda: homeMotor(0)).grid(row=
 Button(columny, text='🏠︎', width=4, command=lambda: homeMotor(y_target=0)).grid(row=2, column=1)
 Button(columnz, text='🏠︎', width=4, command=lambda: homeMotor(z_target=0)).grid(row=2, column=1)
 
-checkLimitx = Label(columnx, text='⦿', fg=colorx, width=4)
-checkLimitx.grid(row=2, column=2)
-checkLimity = Label(columny, text='⦿', fg=colory, width=4)
-checkLimity.grid(row=2, column=2)
-checkLimitz = Label(columnz, text='⦿', fg=colorz, width=4)
-checkLimitz.grid(row=2, column=2)
+limitx = Label(columnx, text='⦿', fg=colorx, width=4)
+limitx.grid(row=2, column=2)
+limity = Label(columny, text='⦿', fg=colory, width=4)
+limity.grid(row=2, column=2)
+limitz = Label(columnz, text='⦿', fg=colorz, width=4)
+limitz.grid(row=2, column=2)
 
 gotox = Spinbox(columnmiddle, from_=-3000, to=3000, textvariable=IntVar())
 gotox.grid(row=3, column=1)
