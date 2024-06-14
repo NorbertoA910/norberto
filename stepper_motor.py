@@ -7,7 +7,7 @@ import json
 root = Tk()
 root.title("Stepper Motor")
 root.resizable(width=False, height=False)
-
+##qwe
 tree = ttk.Treeview(root, columns=("X", "Y", "Z", "Delay"), show='headings')
 tree.heading("X", text="X")
 tree.heading("Y", text="Y")
@@ -442,7 +442,7 @@ def disable_widgets():
     run_button.config(state="disabled")
     clear_button.config(state="disabled")
     tree.unbind("<<TreeviewSelect>>")
-    
+
 def load_jog_speed():
     positions = load_positions()
     jogxy.delete(0, END)
