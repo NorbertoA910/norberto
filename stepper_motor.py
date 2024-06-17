@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
+from tkinter import filedialog
 import time
 import json
 
@@ -31,7 +32,11 @@ x, y, z = 0, 0, 0
 colorx, colory, colorz = "green", "green", "green"
 yes_button = False
 spinbox_changed = False
+numberofposition = 6
 running = False
+looping = False
+after_id = None
+current_execution_item = None
 
 spinbox_vars = {
     'X': {},
@@ -301,9 +306,7 @@ def moveTo(_x=None, _y=None, _z=None):
     except ValueError:
         char_warning()
         x, y, z = 0, 0, 0
-    
     update_coordinates()
-
 
 def move_up_left(): move_delta(-1, 1, 0)
 def move_xy_up(): move_delta(0, 1, 0)
@@ -316,7 +319,7 @@ def move_down_right(): move_delta(1, -1, 0)
 def move_z_up(): move_delta(0, 0, 1)
 def move_z_down(): move_delta(0, 0, -1)
 
-def save_coordinates():
+def add_coordinates():
     if not running:
         x = gotox.get()
         y = gotoy.get()
@@ -382,8 +385,8 @@ def adjust_delay(delay):
         delay = float(delay)
         if delay < 0:
             return 0
-        elif delay > 10:
-            return 10
+        elif delay > 31556926:
+            return 31556926
         else:
             return delay
     except ValueError:
@@ -407,20 +410,37 @@ def load_selected_coordinates(event):
         messagebox.showinfo("Info", "Cannot load coordinates while running.")
 
 def run_coordinates():
-    global running
+    global running, looping, current_index
     if not running:
         coordinates = tree.get_children()
         if coordinates:
             running = True
+            looping = loop_checkbox_var.get()
             disable_widgets()
-            run_next_coordinate(coordinates, 0)
+            current_index = 0
+            run_next_coordinate(coordinates, current_index)
         else:
             messagebox.showwarning("Warning", "No coordinates to run.")
     else:
         messagebox.showinfo("Info", "Coordinates are already running.")
 
+def stop_coordinates():
+    global running, current_execution_item
+    running = False
+    current_execution_item = None
+    if after_id:
+        root.after_cancel(after_id)
+    enable_widgets()
+
 def run_next_coordinate(coordinates, index):
-    if index < len(coordinates):
+    global current_index, running, current_execution_item
+    if index < len(coordinates) and running:
+        current_item = coordinates[index]
+        if current_item != current_execution_item:
+            tree.selection_set(current_item)
+            tree.focus(current_item)
+            current_execution_item = current_item
+            
         for item in tree.selection():
             tree.selection_remove(item)
         
@@ -430,27 +450,77 @@ def run_next_coordinate(coordinates, index):
         
         x, y, z, delay = tree.item(current_item, 'values')
         moveTo(x, y, z)
-        
-        root.after(int(float(delay) * 1000), run_next_coordinate, coordinates, index + 1)
+        if running:
+            root.after(int(float(delay) * 1000), run_next_coordinate, coordinates, index + 1)
+    elif looping and running:
+        current_index = 0
+        run_next_coordinate(coordinates, current_index)
     else:
         enable_widgets()
         messagebox.showinfo("Info", "Finished running coordinates.")
-        global running
         running = False
 
 def enable_widgets():
-    save_button.config(state="normal")
+    add_button.config(state="normal")
     edit_button.config(state="normal")
     run_button.config(state="normal")
     clear_button.config(state="normal")
+    stop_button.config(state="disabled")
+    save_button.config(state="normal")
+    load_button.config(state="normal")
     tree.bind("<<TreeviewSelect>>", load_selected_coordinates)
 
 def disable_widgets():
-    save_button.config(state="disabled")
+    add_button.config(state="disabled")
     edit_button.config(state="disabled")
     run_button.config(state="disabled")
     clear_button.config(state="disabled")
+    stop_button.config(state="normal")
+    save_button.config(state="disabled")
+    load_button.config(state="disabled")
     tree.unbind("<<TreeviewSelect>>")
+
+def save_to_json():
+    filename = filedialog.asksaveasfilename(defaultextension=".json", filetypes=[("JSON Files", "*.json")])
+    if filename:
+        try:
+            data = []
+            for item in tree.get_children():
+                values = tree.item(item, 'values')
+                data.append({
+                    'X': values[0],
+                    'Y': values[1],
+                    'Z': values[2],
+                    'Delay': values[3]
+                })
+            with open(filename, 'w') as f:
+                json.dump(data, f, indent=4)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to save JSON file: {e}")
+
+def load_from_json():
+    global running
+    if not running:
+        filename = filedialog.askopenfilename(filetypes=[("JSON Files", "*.json")])
+        if filename:
+            try:
+                for item in tree.get_children():
+                    tree.delete(item)
+
+                with open(filename, 'r') as f:
+                    data = json.load(f)
+                    for item in data:
+                        x = adjust_coordinate(item['X'])
+                        y = adjust_coordinate(item['Y'])
+                        z = adjust_coordinate(item['Z'])
+                        delay = adjust_delay(item['Delay'])
+                        tree.insert("", "end", values=(x, y, z, delay))
+
+                messagebox.showinfo("Success", "Coordinates loaded successfully.")
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to load JSON file: {e}")
+    else:
+        messagebox.showinfo("Info", "Cannot load coordinates while running.")
 
 def load_jog_speed():
     positions = load_positions()
@@ -484,21 +554,34 @@ def save_jog_speed():
 columnleft = Frame(sequencetab, width=150)
 columnleft.grid(row=1, column=0, sticky="ns")
 
-save_button = Button(columnleft, text="Save", command=save_coordinates)
-save_button.grid(row=0, column=1, padx=10, sticky="ew")
+add_button = Button(columnleft, text="Add", command=add_coordinates)
+add_button.grid(row=0, column=1, padx=10, pady=5, sticky="ew")
 
 edit_button = Button(columnleft, text="Edit", command=edit_coordinates)
-edit_button.grid(row=0, column=2, padx=10, sticky="ew")
+edit_button.grid(row=0, column=2, padx=10, pady=5, sticky="ew")
 
 run_button = Button(columnleft, text="Run", command=run_coordinates)
-run_button.grid(row=0, column=3, padx=10, sticky="ew")
+run_button.grid(row=0, column=3, padx=10, pady=5, sticky="ew")
 
 clear_button = Button(columnleft, text="Clear", command=clear_coordinates)
-clear_button.grid(row=0, column=4, padx=10, sticky="ew")
+clear_button.grid(row=0, column=4, padx=10, pady=5, sticky="ew")
 
-Label(columnleft, text='Delay (s)').grid(row=1, column=5)
-delay_spinbox = Spinbox(columnleft, from_=0, to=60, textvariable=IntVar())
-delay_spinbox.grid(row=0, column=5, padx=10)
+loop_checkbox_var = BooleanVar()
+loop_checkbox = Checkbutton(columnleft, text="Loop", variable=loop_checkbox_var)
+loop_checkbox.grid(row=1, column=2, columnspan=2, padx=10, pady=5, sticky="w")
+
+stop_button = Button(columnleft, text="Stop", command=stop_coordinates, state="disabled")
+stop_button.grid(row=2, column=2, columnspan=2, padx=10, pady=5, sticky="ew")
+
+Label(columnleft, text='Delay (s)').grid(row=1, column=6)
+delay_spinbox = Spinbox(columnleft, from_=0, to=31556926, textvariable=IntVar())
+delay_spinbox.grid(row=0, column=6, padx=10, pady=5)
+
+save_button = Button(columnleft, text="Save", command=save_to_json)
+save_button.grid(row=4, column=2, padx=10, pady=5, sticky="ew")
+
+load_button = Button(columnleft, text="Load", command=load_from_json)
+load_button.grid(row=4, column=3, padx=10, pady=5, sticky="ew")
     
 columnmiddle = Frame(root, width=150)
 columnmiddle.grid(row=0, column=3, columnspan=2, sticky="ns")
@@ -567,9 +650,9 @@ jogz.grid(row=8, column=3)
 Label(columnmiddle, text='mm/s').grid(row=7, column=4)
 Label(columnmiddle, text='mm').grid(row=8, column=4)
 
-Button(columnmiddle, text="Load Jog/Speed", command=load_jog_speed).grid(row=9, column=1)
+Button(columnmiddle, text="Load Jog/Speed", command=load_jog_speed).grid(row=9, column=1, columnspan=2)
 
-Button(columnmiddle, text="Save Jog/Speed", command=save_jog_speed).grid(row=9, column=2)
+Button(columnmiddle, text="Save Jog/Speed", command=save_jog_speed).grid(row=9, column=2, columnspan=2)
 
 columnright = Frame(root, width=150)
 columnright.grid(row=0, column=5, columnspan=2, sticky="ns")
@@ -586,10 +669,11 @@ coordinatesz = Label(columnright, text=f'{int(z)}', font=('TkDefaultFont', 16, '
 coordinatesz.grid(row=3, column=1)
 Button(columnright, text='Home All', width=18, height=3, command=home_all).grid(row=4, column=0, columnspan=2)
 Button(columnright, text='Settings', width=18, height=3, command=open_settings).grid(row=5, column=0, columnspan=2)
+Button(columnright, text='Stop Motor', width=18, height=3).grid(row=6, column=0, columnspan=2)
 
 positions = load_positions()
 
-for i in range(1, 7):
+for i in range(1, numberofposition+1):
     create_position_button(positionstab, 0 + (i-1)//2, (i-1) % 2, i, positions=positions)
 
 load_jog_speed()
