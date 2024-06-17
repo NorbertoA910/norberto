@@ -574,7 +574,7 @@ Button(columnmiddle, text="Save Jog/Speed", command=save_jog_speed).grid(row=9, 
 columnright = Frame(root, width=150)
 columnright.grid(row=0, column=5, columnspan=2, sticky="ns")
 
-Label(columnright, text='Coordinates', font=('TkDefaultFont', 18), fg='#353839').grid(row=0, column=0, columnspan=2)
+Label(columnright, text='Coordinates', font=('TkDefaultFont', 16), fg='#353839').grid(row=0, column=0, columnspan=2)
 Label(columnright, text='X', font=('TkDefaultFont', 16)).grid(row=1, column=0)
 Label(columnright, text='Y', font=('TkDefaultFont', 16)).grid(row=2, column=0)
 Label(columnright, text='Z', font=('TkDefaultFont', 16)).grid(row=3, column=0)
