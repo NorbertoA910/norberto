@@ -8,16 +8,24 @@ root = Tk()
 root.title("Stepper Motor")
 root.resizable(width=False, height=False)
 
-tree = ttk.Treeview(root, columns=("X", "Y", "Z", "Delay"), show='headings')
+tabControl = ttk.Notebook(root) 
+positionstab = ttk.Frame(tabControl) 
+sequencetab = ttk.Frame(tabControl) 
+  
+tabControl.add(positionstab, text ='Positions')
+tabControl.add(sequencetab, text ='Sequence')
+tabControl.grid(row=0, column=0, sticky="nsew")
+
+tree = ttk.Treeview(sequencetab, columns=("X", "Y", "Z", "Delay"), show='headings')
 tree.heading("X", text="X")
 tree.heading("Y", text="Y")
 tree.heading("Z", text="Z")
 tree.heading("Delay", text="Delay (s)")
 
 for col in ("X", "Y", "Z", "Delay"):
-    tree.column(col, width=80, anchor=CENTER)
+    tree.column(col, width=100, anchor=CENTER)
 
-tree.grid(row=0, column=1, sticky="nsew")
+tree.grid(row=0, column=0, sticky="nsew")
 
 x, y, z = 0, 0, 0
 colorx, colory, colorz = "green", "green", "green"
@@ -159,7 +167,7 @@ def on_button_release(event, button):
             update_coordinates()
 
 def create_position_button(parent, row, col, index, positions):
-    button = Button(parent, text=f'P{index}', width=8, height=4)
+    button = Button(parent, text=f'P{index}', width=16, height=8)
     button.grid(row=row, column=col)
     button.index = index
     button.coordinates = positions.get(str(index), (0, 0, 0))
@@ -473,20 +481,24 @@ def save_jog_speed():
             "speedz": speedz.get()
         }
 
-columnleft = Frame(root, width=150)
-columnleft.grid(row=0, column=0, sticky="ns")
+columnleft = Frame(sequencetab, width=150)
+columnleft.grid(row=1, column=0, sticky="ns")
 
 save_button = Button(columnleft, text="Save", command=save_coordinates)
-save_button.grid(row=1, column=0, pady=10, sticky="ew")
+save_button.grid(row=0, column=1, padx=10, sticky="ew")
 
 edit_button = Button(columnleft, text="Edit", command=edit_coordinates)
-edit_button.grid(row=2, column=0, pady=10, sticky="ew")
+edit_button.grid(row=0, column=2, padx=10, sticky="ew")
 
 run_button = Button(columnleft, text="Run", command=run_coordinates)
-run_button.grid(row=3, column=0, pady=10, sticky="ew")
+run_button.grid(row=0, column=3, padx=10, sticky="ew")
 
 clear_button = Button(columnleft, text="Clear", command=clear_coordinates)
-clear_button.grid(row=4, column=0, pady=10, sticky="ew")
+clear_button.grid(row=0, column=4, padx=10, sticky="ew")
+
+Label(columnleft, text='Delay (s)').grid(row=1, column=5)
+delay_spinbox = Spinbox(columnleft, from_=0, to=60, textvariable=IntVar())
+delay_spinbox.grid(row=0, column=5, padx=10)
     
 columnmiddle = Frame(root, width=150)
 columnmiddle.grid(row=0, column=3, columnspan=2, sticky="ns")
@@ -496,9 +508,8 @@ Button(columnmiddle, text='Go To', command=moveTo).grid(row=3, column=0)
 Label(columnmiddle, text='X').grid(row=1, column=1)
 Label(columnmiddle, text='Y').grid(row=1, column=2)
 Label(columnmiddle, text='Z').grid(row=1, column=3)
-Label(columnmiddle, text='Delay (s)').grid(row=2, column=4)
 
-columnx = Frame(columnmiddle, width=150)
+columnx = Frame(columnmiddle, width=150)    
 columnx.grid(row=2, column=1, sticky="ns")
 columny = Frame(columnmiddle, width=150)
 columny.grid(row=2, column=2, sticky="ns")
@@ -522,8 +533,6 @@ gotoy = Spinbox(columnmiddle, from_=-3000, to=3000, textvariable=IntVar())
 gotoy.grid(row=3, column=2)
 gotoz = Spinbox(columnmiddle, from_=-3000, to=3000, textvariable=IntVar())
 gotoz.grid(row=3, column=3)
-delay_spinbox = Spinbox(columnmiddle, from_=0, to=60, textvariable=IntVar())
-delay_spinbox.grid(row=3, column=4)
 
 joystickxy = Frame(columnmiddle, width=150)
 joystickxy.grid(row=4, column=1, columnspan=2)
@@ -565,24 +574,23 @@ Button(columnmiddle, text="Save Jog/Speed", command=save_jog_speed).grid(row=9, 
 columnright = Frame(root, width=150)
 columnright.grid(row=0, column=5, columnspan=2, sticky="ns")
 
-Label(columnright, text='Coordinates', font=('TkDefaultFont', 12), fg='#353839').grid(row=0, column=0, columnspan=2)
-Label(columnright, text='X', font=('TkDefaultFont', 10)).grid(row=1, column=0)
-Label(columnright, text='Y', font=('TkDefaultFont', 10)).grid(row=2, column=0)
-Label(columnright, text='Z', font=('TkDefaultFont', 10)).grid(row=3, column=0)
-coordinatesx = Label(columnright, text=f'{int(x)}', font=('TkDefaultFont', 10, 'bold'), fg='#343434')
+Label(columnright, text='Coordinates', font=('TkDefaultFont', 18), fg='#353839').grid(row=0, column=0, columnspan=2)
+Label(columnright, text='X', font=('TkDefaultFont', 16)).grid(row=1, column=0)
+Label(columnright, text='Y', font=('TkDefaultFont', 16)).grid(row=2, column=0)
+Label(columnright, text='Z', font=('TkDefaultFont', 16)).grid(row=3, column=0)
+coordinatesx = Label(columnright, text=f'{int(x)}', font=('TkDefaultFont', 16, 'bold'), fg='#343434')
 coordinatesx.grid(row=1, column=1)
-coordinatesy = Label(columnright, text=f'{int(y)}', font=('TkDefaultFont', 10, 'bold'), fg='#343434')
+coordinatesy = Label(columnright, text=f'{int(y)}', font=('TkDefaultFont', 16, 'bold'), fg='#343434')
 coordinatesy.grid(row=2, column=1)
-coordinatesz = Label(columnright, text=f'{int(z)}', font=('TkDefaultFont', 10, 'bold'), fg='#343434')
+coordinatesz = Label(columnright, text=f'{int(z)}', font=('TkDefaultFont', 16, 'bold'), fg='#343434')
 coordinatesz.grid(row=3, column=1)
+Button(columnright, text='Home All', width=18, height=3, command=home_all).grid(row=4, column=0, columnspan=2)
+Button(columnright, text='Settings', width=18, height=3, command=open_settings).grid(row=5, column=0, columnspan=2)
 
 positions = load_positions()
 
 for i in range(1, 7):
-    create_position_button(columnright, 4 + (i-1)//2, (i-1) % 2, i, positions=positions)
-
-Button(columnright, text='Home All', width=18, height=3, command=home_all).grid(row=7, column=0, columnspan=2)
-Button(columnright, text='Settings', width=18, height=3, command=open_settings).grid(row=8, column=0, columnspan=2)
+    create_position_button(positionstab, 0 + (i-1)//2, (i-1) % 2, i, positions=positions)
 
 load_jog_speed()
 tree.bind("<<TreeviewSelect>>", load_selected_coordinates)
