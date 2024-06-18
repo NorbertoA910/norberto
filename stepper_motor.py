@@ -31,6 +31,7 @@ tree.grid(row=0, column=0, sticky="nsew")
 
 x, y, z = 0, 0, 0
 colorx, colory, colorz = "green", "green", "green"
+current_tab = 0
 numberofposition = 6
 yes_button = False
 spinbox_changed = False
@@ -179,6 +180,72 @@ def create_position_button(parent, row, col, index, positions):
     button.bind("<ButtonPress>", lambda e, b=button: on_button_press(e, b))
     button.bind("<ButtonRelease>", lambda e, b=button: on_button_release(e, b))
     return button
+
+def move_to_position(position):
+    global x, y, z
+    positions = load_positions()
+    if position in positions:
+        x, y, z = positions[position]
+        update_coordinates()
+
+def hotkey_position_1():move_to_position('1')
+def hotkey_position_2():move_to_position('2')
+def hotkey_position_3():move_to_position('3')
+def hotkey_position_4():move_to_position('4')
+def hotkey_position_5():move_to_position('5')
+def hotkey_position_6():move_to_position('6')
+
+def remove_hotkey_safely(key):
+    try:
+        keyboard.remove_hotkey(key)
+    except KeyError:
+        pass
+
+def positions_hotkeys():
+    keyboard.add_hotkey('ctrl + 1', hotkey_position_1)
+    keyboard.add_hotkey('ctrl + 2', hotkey_position_2)
+    keyboard.add_hotkey('ctrl + 3', hotkey_position_3)
+    keyboard.add_hotkey('ctrl + 4', hotkey_position_4)
+    keyboard.add_hotkey('ctrl + 5', hotkey_position_5)
+    keyboard.add_hotkey('ctrl + 6', hotkey_position_6)
+
+def remove_positions_hotkeys():
+    remove_hotkey_safely('ctrl + 1')
+    remove_hotkey_safely('ctrl + 2')
+    remove_hotkey_safely('ctrl + 3')
+    remove_hotkey_safely('ctrl + 4')
+    remove_hotkey_safely('ctrl + 5')
+    remove_hotkey_safely('ctrl + 6')
+    
+def sequence_hotkeys():
+    keyboard.add_hotkey('a', add_coordinates)
+    keyboard.add_hotkey('e', edit_coordinates)
+    keyboard.add_hotkey('enter', run_coordinates)
+    keyboard.add_hotkey('ctrl + backspace', clear_coordinates)
+    keyboard.add_hotkey('space', stop_coordinates)
+    keyboard.add_hotkey('ctrl + s', save_to_json)
+    keyboard.add_hotkey('ctrl + l', load_from_json)
+    
+def remove_sequence_hotkeys():
+    remove_hotkey_safely('a')
+    remove_hotkey_safely('e')
+    remove_hotkey_safely('enter')
+    remove_hotkey_safely('ctrl + backspace')
+    remove_hotkey_safely('space')
+    remove_hotkey_safely('ctrl + s')
+    remove_hotkey_safely('ctrl + l')
+
+def handle_tab_change(event):
+    global current_tab
+    current_tab = tabControl.index(tabControl.select())
+    if current_tab == 0:
+        positions_hotkeys()
+        remove_sequence_hotkeys()
+    if current_tab == 1:
+        sequence_hotkeys()
+        remove_positions_hotkeys()
+
+tabControl.bind("<<NotebookTabChanged>>", handle_tab_change)
 
 def check_number():
     global x, y, z
