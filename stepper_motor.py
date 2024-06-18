@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog
+import keyboard
 import time
 import json
 
@@ -30,9 +31,9 @@ tree.grid(row=0, column=0, sticky="nsew")
 
 x, y, z = 0, 0, 0
 colorx, colory, colorz = "green", "green", "green"
+numberofposition = 6
 yes_button = False
 spinbox_changed = False
-numberofposition = 6
 running = False
 looping = False
 after_id = None
@@ -131,8 +132,7 @@ def save_settings_callback():
     settings_window.destroy()
     
 def saveStoredPositions(button):
-    global yes_button, save_window, x, y, z
-    yes_button = not yes_button
+    global x, y, z
     button.coordinates = (x, y, z)
     button.config(text=f'P{button.index}*')
     save_window.destroy()
@@ -600,8 +600,11 @@ columnz = Frame(columnmiddle, width=150)
 columnz.grid(row=2, column=3, sticky="ns")
 
 Button(columnx, text='🏠︎', width=4, command=lambda: homeMotor(0)).grid(row=2, column=1)
+keyboard.add_hotkey('home + x', lambda: homeMotor(0))
 Button(columny, text='🏠︎', width=4, command=lambda: homeMotor(y_target=0)).grid(row=2, column=1)
+keyboard.add_hotkey('home + y', lambda: homeMotor(y_target=0))
 Button(columnz, text='🏠︎', width=4, command=lambda: homeMotor(z_target=0)).grid(row=2, column=1)
+keyboard.add_hotkey('home + z', lambda: homeMotor(z_target=0))
 
 limitx = Label(columnx, text='⦿', fg=colorx, width=4)
 limitx.grid(row=2, column=2)
@@ -622,20 +625,26 @@ joystickxy.grid(row=4, column=1, columnspan=2)
 
 Button(joystickxy, text='◤', width=10, height=5, command=move_up_left).grid(row=0, column=0)
 Button(joystickxy, text='▲', width=10, height=5, command=move_xy_up).grid(row=0, column=1)
+keyboard.add_hotkey('up', move_xy_up)
 Button(joystickxy, text='◥', width=10, height=5, command=move_up_right).grid(row=0, column=2)
 Button(joystickxy, text='◀', width=10, height=5, command=move_left).grid(row=1, column=0)
+keyboard.add_hotkey('left', move_left)
 Label(joystickxy, text='XY', width=10, height=5).grid(row=1, column=1)
 Button(joystickxy, text='▶', width=10, height=5, command=move_right).grid(row=1, column=2)
+keyboard.add_hotkey('right', move_right)
 Button(joystickxy, text='◣', width=10, height=5, command=move_down_left).grid(row=2, column=0)
 Button(joystickxy, text='▼', width=10, height=5, command=move_xy_down).grid(row=2, column=1)
+keyboard.add_hotkey('down', move_xy_down)
 Button(joystickxy, text='◢', width=10, height=5, command=move_down_right).grid(row=2, column=2)
 
 joystickz = Frame(columnmiddle, width=150)
 joystickz.grid(row=4, column=3, columnspan=2)
 
 Button(joystickz, text='▲', width=10, height=5, command=move_z_up).grid(row=0, column=0)
+keyboard.add_hotkey('page_up', move_z_up)
 Label(joystickz, text='Z', width=10, height=5).grid(row=1, column=0)
 Button(joystickz, text='▼', width=10, height=5, command=move_z_down).grid(row=2, column=0)
+keyboard.add_hotkey('page_down', move_z_down)
 
 Label(columnmiddle, text='Speed').grid(row=7, column=0)
 Label(columnmiddle, text='Jog Distance').grid(row=8, column=0)
@@ -668,13 +677,15 @@ coordinatesy.grid(row=2, column=1)
 coordinatesz = Label(columnright, text=f'{int(z)}', font=('TkDefaultFont', 16, 'bold'), fg='#343434')
 coordinatesz.grid(row=3, column=1)
 Button(columnright, text='Home All', width=18, height=3, command=home_all).grid(row=4, column=0, columnspan=2)
+keyboard.add_hotkey('ctrl + home', home_all)
 Button(columnright, text='Settings', width=18, height=3, command=open_settings).grid(row=5, column=0, columnspan=2)
+keyboard.add_hotkey('s', open_settings)
 Button(columnright, text='Stop Motor', width=18, height=3).grid(row=6, column=0, columnspan=2)
 
 positions = load_positions()
 
-for i in range(1, numberofposition+1):
-    create_position_button(positionstab, 0 + (i-1)//2, (i-1) % 2, i, positions=positions)
+for i in range(1, numberofposition + 1):
+    create_position_button(positionstab, 0 + (i - 1) // 2, (i - 1) % 2, i, positions=positions)
 
 load_jog_speed()
 tree.bind("<<TreeviewSelect>>", load_selected_coordinates)
