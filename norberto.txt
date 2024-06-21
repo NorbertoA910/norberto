@@ -1,0 +1,10 @@
+ Atalhos de Teclado
+
+AT32F403ARCT7
+KL6J2-000
+2327BS
+
+compilar stm32f1xx
+
+definir pinmap
+

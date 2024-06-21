@@ -30,9 +30,10 @@ while True:
 
     if secreto == user:
         print("Adivinhaste! Tinhas mais " + str(vidas) + " vidas.")
+        dificuldade = input("Escolhe uma dificuldade(f = facil; m = medio, d = dificil)")
 
     if vidas == 0:
         print("Perdeste. O numero era " + str(secreto))
-        break
+        dificuldade = input("Escolhe uma dificuldade(f = facil; m = medio, d = dificil)")
 
     
