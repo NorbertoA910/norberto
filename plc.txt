@@ -1,0 +1,19 @@
+plc entradas e saidas digitais buzina lcd touch
+
+CLP com IHM incorporada X5
+https://www.directindustry.com/pt/prod/horner-automation/product-23203-1919258.html
+
+CLP compacto X4
+https://www.directindustry.com/pt/prod/horner-automation/product-23203-2502359.html
+
+CLP com IHM de tipo touchscreen incorporada XL4 Prime OCS
+https://www.directindustry.com/pt/prod/horner-automation/product-23203-854145.html
+
+CLP Coolmay QM3G – 2 em 1 – CLP com IHM Touch
+https://alfacomp.net/produto/coolmay-qm3g/
+
+Integrador PLC HMI tudo-em-um, Painel táctil 800x480, Ethernet FX3G, FX3U, FX3S, 24MR, 24MT, PT100, RS485, personalizável
+https://pt.aliexpress.com/i/1005002264708725.html   
+
+IHMs Touch Screen- Séries DOP-AS / AE
+https://www.novus.com.br/pt/produto/clps-ihms/ihms-touch-screen--series-dop-as-ae
