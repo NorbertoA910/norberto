@@ -1,14 +1,23 @@
 import tkinter as tk
-from datetime import datetime
+from datetime import datetime, timedelta
 
 placas = []
 contador = 0
 tempo_saida = 5
 
 def adicionar_placa():
-    global contador 
+    global contador
     contador += 1
-    nova_placa = {"numero": contador, "stuck": False, "entrada": datetime.now(), "botao_emperramento": None}
+    agora = datetime.now()
+    nova_placa = {"numero": contador, "stuck": False, "entrada": agora, "botao_emperramento": None}
+    
+    if len(placas) > 0: #len() é uma função que returna o numero de items num objeto(placas)
+        tempo_entrada_anterior = placas[-1]["entrada"]
+        diferenca_tempo = (agora - tempo_entrada_anterior).total_seconds()
+        nova_placa["tempo_espera"] = max(int(entrada_temposaida.get()), diferenca_tempo) #max() é uma função que returna o items com o valor mais alto
+    else:
+        nova_placa["tempo_espera"] = int(entrada_temposaida.get())
+    
     placas.append(nova_placa)
     entrada(nova_placa)
     nova_placa["botao_emperramento"] = tk.Button(frame_registro, text=f"Placa {contador} Emperrada", command=lambda p=nova_placa: simular_emperramento(p)) 
@@ -19,18 +28,16 @@ def entrada(placa_info):
     texto_registro.insert(tk.END, f"Placa {placa_num} entrou\n")
     texto_registro.see(tk.END)
     if not placa_info["stuck"]:
-        root.after(int(entrada_temposaida.get()) * 1000, lambda: saida(placa_info))
+        root.after(int(placa_info["tempo_espera"]) * 1000, lambda: saida(placa_info))
 
 def saida(placa_info):
     placa_num = placa_info["numero"]
     
-    # Verifica se a placa atual está emperrada
     if placa_info["stuck"]:
         texto_registro.insert(tk.END, f"Placa {placa_num} não pode sair porque está emperrada!\n")
         texto_registro.see(tk.END)
         return
     
-    # Verifica se há alguma placa anterior emperrada que impede a saída
     placa_index = placas.index(placa_info)
     for anterior in placas[:placa_index]:
         if anterior["stuck"]:
@@ -40,7 +47,7 @@ def saida(placa_info):
     
     texto_registro.insert(tk.END, f"Placa {placa_num} saiu\n")
     texto_registro.see(tk.END)
-    placas.remove(placa_info)  # Remove a placa da lista ao sair
+    placas.remove(placa_info)
 
 def simular_emperramento(placa_info):
     placa_info["stuck"] = True
