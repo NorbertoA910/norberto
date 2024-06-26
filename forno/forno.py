@@ -1,86 +1,91 @@
-from tkinter import *
+import tkinter as tk
+from datetime import datetime
 
 placas = []
 contador = 0
 tempo_saida = 5
 
-root = Tk()
-root.title("Sensores Forno de placas")
-root.resizable(width=False, height=False)
-
 def adicionar_placa():
-    global contador, botao_emperramento
+    global contador 
     contador += 1
-    placas.append({"numero": contador, "stuck": False})  # Adiciona um dicionário representando a nova placa à lista placas
-    entrada(placas[-1])  # Chama a função entrada com a última placa adicionada
-    botao_emperramento = Button(frame_registro, text=f"Emperrar Placa {contador}", command=lambda p=placas[-1]: simular_emperramento(p))  # Cria um botão para simular emperramento
-    botao_emperramento.pack(pady=2)  # Mostra o botão na interface
+    nova_placa = {"numero": contador, "stuck": False, "entrada": datetime.now(), "botao_emperramento": None}
+    placas.append(nova_placa)
+    entrada(nova_placa)
+    nova_placa["botao_emperramento"] = tk.Button(frame_registro, text=f"Placa {contador} Emperrada", command=lambda p=nova_placa: simular_emperramento(p)) 
+    nova_placa["botao_emperramento"].pack(pady=2)
 
 def entrada(placa_info):
     placa_num = placa_info["numero"]
-    texto_registro.insert(END, f"Placa {placa_num} entrou\n")  # Insere no registro que a placa entrou
-    texto_registro.see(END)  # Garante que o registro esteja visível
-    if placa_info["stuck"]:
-        texto_registro.insert(END, f"Placa {placa_num} está emperrada e precisa de atenção!\n")  # Informa se a placa está emperrada
-        texto_registro.see(END)
-    else:
-        root.after(int(entrada_temposaida.get()) * 1000, lambda: saida(placa_info))  # Programa a saída da placa após o tempo especificado
+    texto_registro.insert(tk.END, f"Placa {placa_num} entrou\n")
+    texto_registro.see(tk.END)
+    if not placa_info["stuck"]:
+        root.after(int(entrada_temposaida.get()) * 1000, lambda: saida(placa_info))
 
 def saida(placa_info):
     placa_num = placa_info["numero"]
-    if not placa_info["stuck"]:
-        texto_registro.insert(END, f"Placa {placa_num} saiu\n")  # Informa que a placa saiu
-        texto_registro.see(END)
-    else:
-        texto_registro.insert(END, f"Placa {placa_num} não foi detectada como saída após o tempo de espera!\n")  # Informa se a placa emperrada não saiu
-        texto_registro.see(END)
+    
+    # Verifica se a placa atual está emperrada
+    if placa_info["stuck"]:
+        texto_registro.insert(tk.END, f"Placa {placa_num} não pode sair porque está emperrada!\n")
+        texto_registro.see(tk.END)
+        return
+    
+    # Verifica se há alguma placa anterior emperrada que impede a saída
+    placa_index = placas.index(placa_info)
+    for anterior in placas[:placa_index]:
+        if anterior["stuck"]:
+            texto_registro.insert(tk.END, f"Placa {placa_num} não pode sair porque a Placa {anterior['numero']} está emperrada!\n")
+            texto_registro.see(tk.END)
+            return
+    
+    texto_registro.insert(tk.END, f"Placa {placa_num} saiu\n")
+    texto_registro.see(tk.END)
+    placas.remove(placa_info)  # Remove a placa da lista ao sair
 
 def simular_emperramento(placa_info):
-    global botao_emperramento
-    placa_info["stuck"] = True  # Simula que a placa está emperrada
+    placa_info["stuck"] = True
     placa_num = placa_info["numero"]
-    texto_registro.see(END)
-    botao_emperramento = Button(frame_registro, text=f"Placa {placa_num} Emperrada", state=DISABLED)  # Cria um botão desativado para a placa emperrada
-    botao_emperramento.pack_forget()  # Remove o botão após algum tempo
-    root.after(int(entrada_temposaida.get()) * 1000, lambda: esconder_botao(botao_emperramento))  # Programa a remoção do botão após o tempo especificado
-
-def esconder_botao(botao):
-    botao.pack_forget()  # Remove o botão da interface
+    texto_registro.insert(tk.END, f"Placa {placa_num} está emperrada!\n")
+    texto_registro.see(tk.END)
+    if placa_info["botao_emperramento"]:
+        placa_info["botao_emperramento"].pack_forget()
 
 def limpar_lista():
     global placas, contador
-    placas.clear()  # Limpa a lista de placas
-    contador = 0  # Reinicia o contador de placas
-    texto_registro.delete(1.0, END)  # Limpa o texto do registro
-    texto_registro.insert(END, "Lista de placas limpa!\n")  # Informa que a lista de placas foi limpa
-    texto_registro.see(END)  # Garante que a mensagem de limpeza esteja visível
+    placas.clear()
+    contador = 0
+    texto_registro.delete(1.0, tk.END)
     for widget in frame_registro.winfo_children():
-        widget.pack_forget()  # Remove todos os widgets do frame de registro
+        widget.pack_forget()
 
-frame_controles = Frame(root)
+root = tk.Tk()
+root.title("Sensores Forno de placas")
+root.resizable(width=False, height=False)
+
+frame_controles = tk.Frame(root)
 frame_controles.pack(padx=10, pady=10)
 
-Button(frame_controles, text="Adicionar Placa", command=adicionar_placa).grid(row=0, column=0, padx=5, pady=5)
-Button(frame_controles, text="Limpar Lista", command=limpar_lista).grid(row=0, column=1, padx=5, pady=5)
+tk.Button(frame_controles, text="Adicionar Placa", command=adicionar_placa).grid(row=0, column=0, padx=5, pady=5)
+tk.Button(frame_controles, text="Limpar Lista", command=limpar_lista).grid(row=0, column=1, padx=5, pady=5)
 
-Label(frame_controles, text="Tempo de saída (s):").grid(row=0, column=2, padx=5, pady=5)
+tk.Label(frame_controles, text="Tempo de saída (s):").grid(row=0, column=2, padx=5, pady=5)
 
-entrada_temposaida = Entry(frame_controles)
+entrada_temposaida = tk.Entry(frame_controles)
 entrada_temposaida.grid(row=0, column=3, padx=5, pady=5)
-entrada_temposaida.insert(END, str(tempo_saida))
+entrada_temposaida.insert(tk.END, str(tempo_saida))
 
-frame_registro = Frame(root)
+frame_registro = tk.Frame(root)
 frame_registro.pack(padx=10, pady=10)
 
-frame_list = Frame(root)
+frame_list = tk.Frame(root)
 frame_list.pack(padx=10, pady=10)
 
-Label(frame_list, text="Registro de Movimentos:").pack()
+tk.Label(frame_list, text="Registro de Movimentos:").pack()
 
-scrollbar = Scrollbar(frame_list)
-scrollbar.pack(side=RIGHT, fill=Y)
+scrollbar = tk.Scrollbar(frame_list)
+scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-texto_registro = Text(frame_list, height=10, width=60, yscrollcommand=scrollbar.set)
+texto_registro = tk.Text(frame_list, height=10, width=60, yscrollcommand=scrollbar.set)
 texto_registro.pack()
 
 scrollbar.config(command=texto_registro.yview)
