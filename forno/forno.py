@@ -4,12 +4,16 @@ placas = []
 contador = 0
 tempo_saida = 5
 
+root = Tk()
+root.title("Sensores Forno de placas")
+root.resizable(width=False, height=False)
+
 def adicionar_placa():
     global contador, botao_emperramento
     contador += 1
     placas.append({"numero": contador, "stuck": False})  # Adiciona um dicionário representando a nova placa à lista placas
     entrada(placas[-1])  # Chama a função entrada com a última placa adicionada
-    botao_emperramento = Button(frame_registro, text=f"Placa {contador} Emperrada", command=lambda p=placas[-1]: simular_emperramento(p))  # Cria um botão para simular emperramento
+    botao_emperramento = Button(frame_registro, text=f"Emperrar Placa {contador}", command=lambda p=placas[-1]: simular_emperramento(p))  # Cria um botão para simular emperramento
     botao_emperramento.pack(pady=2)  # Mostra o botão na interface
 
 def entrada(placa_info):
@@ -52,10 +56,6 @@ def limpar_lista():
     texto_registro.see(END)  # Garante que a mensagem de limpeza esteja visível
     for widget in frame_registro.winfo_children():
         widget.pack_forget()  # Remove todos os widgets do frame de registro
-
-root = Tk()
-root.title("Sensores Forno de placas")
-root.resizable(width=False, height=False)
 
 frame_controles = Frame(root)
 frame_controles.pack(padx=10, pady=10)
