@@ -8,3 +8,4 @@ compilar stm32f1xx
 
 definir pinmap
 
+Temporizador ser o mesmo para todas as placas
